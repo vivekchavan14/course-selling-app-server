@@ -91,6 +91,54 @@ app.get('/admin/courses',(req,res)=>{
     res.json({course : COURSE})
 })
 
+app.post('/user/signup',(req,res) => {
+    const user = {
+        username : req.body.username,
+        password : req.body.password,
+        purchasedCourses : [],
+    }
+    const ExistingUser = USER.find(u => u.username === user.username);
+    if(ExistingUser){
+        res.status(403).json({message : "User already exists"});
+    }
+    else
+    {
+        USER.push(user);
+        res.status(200).json({message : 'User created'});
+    }
+
+})
+
+app.post('/user/login', userAuthentication, (req, res) => {
+    const { username, password } = req.body;
+    const user = USER.find(a => a.username === username);
+
+    if (!user) {
+        res.status(403).json({ message: 'Admin not found' });
+        return;
+    }
+
+    if (user.password !== password) {
+        res.status(403).json({ message: 'Incorrect password' });
+        return;
+    }
+    res.json({ message: 'Logged in successfully' });
+});
+
+app.post('/user/courses',userAuthentication, (req,res) => {
+    let filteredCourses = [];
+    for(let i=0; i<COURSE.length; i++)
+    {
+        if(COURSE[i].published)
+        {
+            filteredCourses.push(COURSE[i]);
+        }
+    }
+    res.json({ course : filteredCourses});
+})
+
+
+
 app.listen(port, ()=>{
     console.log(`Server running on http://localhost:${port}`)
 })
